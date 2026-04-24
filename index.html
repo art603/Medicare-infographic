@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medicare Coverage Options Infographic</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!--
+Palette Name: Vibrant Trust (Blues, Orange Accent, Teal)
+Colors: #1E3A8A (Navy), #3B82F6 (Bright Blue), #F97316 (Vibrant Orange), #14B8A6 (Teal)
+
+Narrative Plan:
+1. Introduction: Set the stage for the Medicare decision.
+2. Medicare Foundations: Updated 2026 data ($202.90 Part B Premium, $1,736 Part A Deductible).
+3. AI Advisor: Gemini-powered "Smart Advisor" using 2026 cost logic.
+4. The Core Choice: Radar chart comparison.
+5. Financial Exposure: Bar chart reflecting 2026 floors and $3,900 AARP MOOP.
+6. Scenario Explorer: Gemini cost simulation.
+7. The Safety Nets: High-Deductible Medigap ($2,950) and Hospital Indemnity.
+
+Explicit Confirmation: I confirm that NEITHER Mermaid JS NOR SVG were used.
+-->
+<style>
+body {
+    background-color: #F8FAFC;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #1E293B;
+    scroll-behavior: smooth;
+}
+.chart-container {
+    position: relative;
+    width: 100%;
+    max-width: 650px;
+    margin-left: auto;
+    margin-right: auto;
+    height: 300px;
+    max-height: 400px;
+}
+@media (min-width: 768px) {
+    .chart-container {
+        height: 380px;
+    }
+}
+.card {
+    background-color: #ffffff;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    padding: 1.5rem;
+    height: 100%;
+}
+.connector-line {
+    width: 2px;
+    background-color: #E2E8F0;
+    margin: 0 auto;
+    height: 2rem;
+}
+.loading-spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3B82F6;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+</head>
+<body class="antialiased">
+
+<nav class="sticky top-0 z-50 bg-white shadow-sm border-b border-gray-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16 items-center">
+            <div class="flex-shrink-0 flex items-center gap-2">
+                <span class="text-2xl font-bold text-blue-900">&#10010;</span>
+                <span class="font-bold text-xl text-gray-900">Medicare<span class="text-blue-600">Map</span></span>
+            </div>
+            <div class="hidden md:flex space-x-8">
+                <a href="#foundations" class="text-gray-600 hover:text-blue-600 font-medium">Foundations</a>
+                <a href="#advisor" class="text-gray-600 hover:text-blue-600 font-medium">✨ Advisor</a>
+                <a href="#core-choice" class="text-gray-600 hover:text-blue-600 font-medium">Core Choice</a>
+                <a href="#financials" class="text-gray-600 hover:text-blue-600 font-medium">Financials</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<header class="bg-blue-900 text-white py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Navigating 2026 Medicare Options</h1>
+        <p class="mt-4 max-w-2xl text-xl mx-auto text-blue-100">
+            A comprehensive visual guide enhanced by Gemini AI, fully updated with the latest 2026 federal cost figures.
+        </p>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
+
+    <section id="foundations" class="scroll-mt-20">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Medicare Foundations: <span class="text-blue-600">2026 Costs</span></h2>
+            <p class="text-lg text-gray-700 max-w-3xl">
+                Base federal Medicare costs have increased for 2026. These figures represent the "standard gaps" that private supplemental plans are designed to eliminate.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="card border-l-8 border-blue-900">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-2xl font-bold text-blue-900">Part A (Hospital)</h3>
+                        <p class="text-sm text-gray-500 font-bold uppercase tracking-wide">Inpatient Services</p>
+                    </div>
+                    <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded">2026 Rates</span>
+                </div>
+                <div class="space-y-4 text-gray-700">
+                    <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="font-medium">Inpatient Deductible</span>
+                            <span class="font-bold text-red-600">$1,736</span>
+                        </div>
+                        <div class="space-y-1 text-xs">
+                            <div class="flex justify-between">
+                                <span>Hospital: Days 1–60</span>
+                                <span class="font-semibold">$0 copay</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Hospital: Days 61–90</span>
+                                <span class="font-semibold">$434 / day</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Hospital: Days 91–150*</span>
+                                <span class="font-semibold text-orange-600">$868 / day</span>
+                            </div>
+                        </div>
+                        <div class="pt-2 border-t space-y-1 text-xs">
+                            <div class="flex justify-between text-blue-900 font-bold">
+                                <span>Skilled Nursing Care</span>
+                                <span>(SNF)</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Days 1–20</span>
+                                <span class="font-semibold">$0 copay</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Days 21–100</span>
+                                <span class="font-semibold">$217 / day</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-gray-400 italic">Premium: Usually $0 (if worked 10+ yrs). Otherwise $278 or $506/mo. *Lifetime reserve days.</p>
+                </div>
+            </div>
+
+            <div class="card border-l-8 border-blue-600">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-2xl font-bold text-blue-600">Part B (Medical)</h3>
+                        <p class="text-sm text-gray-500 font-bold uppercase tracking-wide">Outpatient Services</p>
+                    </div>
+                    <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded">2026 Rates</span>
+                </div>
+                <div class="space-y-4 text-gray-700">
+                    <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="font-medium">Standard Premium</span>
+                            <span class="font-bold text-blue-800">$202.90 / mo</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-1">
+                            <span class="font-medium">Annual Deductible</span>
+                            <span class="font-bold text-red-600">$283</span>
+                        </div>
+                        <div class="flex justify-between pt-1">
+                            <span class="font-medium text-sm">Typical Coinsurance</span>
+                            <span class="font-bold text-red-600">20% of Bill</span>
+                        </div>
+                    </div>
+                    <p class="text-sm"><strong>Key Risk:</strong> Part B has <strong>no out-of-pocket limit</strong>. Without a supplement or advantage plan, you are responsible for 20% of all outpatient costs indefinitely.</p>
+                    <p class="text-[10px] text-gray-400 italic">*Premium based on 2026 estimates. Higher earners may pay IRMAA surcharges.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="advisor" class="scroll-mt-20">
+        <div class="card border-2 border-blue-100 bg-blue-50/50">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-2xl">✨</span>
+                <h2 class="text-2xl font-bold text-blue-900">Personalized Medicare Advisor</h2>
+            </div>
+            <p class="text-gray-700 mb-6">Describe your lifestyle (e.g., "I travel often," "I want the lowest monthly cost," "I have several specialists") and our AI will recommend a starting point.</p>
+            
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="text" id="advisorInput" placeholder="e.g. I travel out of state a lot and want to see any doctor..." 
+                    class="flex-1 p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none">
+                <button onclick="getAdvisorRecommendation()" id="advisorBtn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    Get ✨ Recommendation
+                </button>
+            </div>
+            
+            <div id="advisorResult" class="hidden mt-6 p-5 bg-white rounded-lg border border-blue-100 shadow-inner text-gray-800 leading-relaxed">
+            </div>
+        </div>
+    </section>
+
+    <section id="core-choice">
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">1. The Core Choice: <span class="text-blue-600">Medigap</span> vs <span class="text-orange-500">Advantage</span></h2>
+            <p class="text-lg text-gray-700 max-w-3xl">
+                Choose between the "Pay-now-for-freedom" model (Medigap) or the "Pay-as-you-go" model (Advantage).
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <div class="card flex flex-col justify-center">
+                <h3 class="text-xl font-bold text-gray-800 mb-6 text-center">Coverage Profile Comparison</h3>
+                <div class="chart-container">
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+            <div class="space-y-6">
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+                    <h4 class="text-xl font-bold text-blue-900 mb-2">Traditional Medigap</h4>
+                    <p class="text-gray-700">Freedom to see any Medicare provider in the USA. Best for consistent budgets and frequent travelers.</p>
+                </div>
+                <div class="bg-orange-50 border-l-4 border-orange-500 p-6 rounded-r-lg">
+                    <h4 class="text-xl font-bold text-orange-900 mb-2">AARP Medicare Advantage</h4>
+                    <p class="text-gray-700">Bundled services with extra perks. Competitive networks and capped out-of-pocket exposure ($3,900 Max).</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="connector-line"></div>
+
+    <section id="financials">
+        <div class="mb-8 text-center">
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">2. Financial Exposure</h2>
+            <p class="text-lg text-gray-700 max-w-4xl mx-auto">Compare fixed premiums against potential annual risks. AARP Advantage features a $3,900 out-of-pocket maximum.</p>
+        </div>
+
+        <div class="card mb-8">
+            <div class="chart-container" style="max-width: 800px;">
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <section id="scenarios" class="scroll-mt-20">
+        <div class="card border-2 border-orange-100 bg-orange-50/50">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-2xl">✨</span>
+                <h2 class="text-2xl font-bold text-orange-900">Coverage Scenario Explorer</h2>
+            </div>
+            <p class="text-gray-700 mb-6">Ask how a specific event impacts your wallet (e.g., "What happens if I need knee surgery?").</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <button onclick="runScenario('A 3-day hospital stay for pneumonia')" class="p-4 bg-white border border-orange-200 rounded-lg hover:bg-orange-100 text-left transition-colors">
+                    &#127973; 3-Day Hospital Stay
+                </button>
+                <button onclick="runScenario('An MRI and two specialist visits')" class="p-4 bg-white border border-orange-200 rounded-lg hover:bg-orange-100 text-left transition-colors">
+                    &#129658; MRI & Specialist
+                </button>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="text" id="scenarioInput" placeholder="Describe a health event..." 
+                    class="flex-1 p-3 rounded-lg border border-gray-300 outline-none">
+                <button onclick="getScenarioResult()" id="scenarioBtn"
+                    class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    Analyze ✨ Scenario
+                </button>
+            </div>
+            
+            <div id="scenarioResult" class="hidden mt-6 p-5 bg-white rounded-lg border border-orange-100 shadow-inner text-gray-800">
+            </div>
+        </div>
+    </section>
+
+    <div class="connector-line"></div>
+
+    <section id="safety-nets">
+        <h2 class="text-3xl font-bold text-gray-900 mb-8">3. Gap Fillers</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="card border-t-4 border-teal-500">
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">High-Deductible Medigap</h3>
+                <div class="flex items-center justify-center py-6">
+                    <span class="text-4xl font-extrabold text-gray-900">$2,950</span>
+                    <span class="ml-2 text-sm text-gray-600">Annual Ded.</span>
+                </div>
+                <p class="text-gray-600 italic text-center">Lowest premium for Original Medicare freedom.</p>
+                <div class="mt-6 space-y-2 border-t pt-4">
+                    <p class="text-sm text-gray-500">Plan pays 100% of Medicare-approved costs <span class="font-bold">after</span> the deductible is reached.</p>
+                </div>
+            </div>
+
+            <div class="card border-t-4 border-blue-500 flex flex-col">
+                <h3 class="text-2xl font-bold text-gray-800 mb-3">Hospital Indemnity</h3>
+                <p class="text-sm text-gray-500 font-bold uppercase tracking-tight mb-4">Cash Benefits to Offset Copays</p>
+                
+                <div class="space-y-4 mb-6">
+                    <div class="flex justify-between items-center bg-blue-50 p-3 rounded-lg">
+                        <span class="text-gray-700 font-medium">Hospital Services</span>
+                        <span class="text-blue-900 font-bold">$1,000 / day</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-teal-50 p-3 rounded-lg">
+                        <span class="text-gray-700 font-medium">Skilled Care</span>
+                        <span class="text-teal-900 font-bold">$500 / day</span>
+                    </div>
+                    <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                        <span class="text-gray-700 font-medium">Outpatient Hospital</span>
+                        <span class="text-gray-900 font-bold">$700</span>
+                    </div>
+                </div>
+
+                <div class="mt-auto h-24">
+                    <canvas id="donutChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="summary">
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">Summary Reference</h2>
+        <div class="card overflow-x-auto p-0">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Feature</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-blue-600 uppercase">Supplement (G)</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-orange-600 uppercase">AARP Advantage</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    <tr><td class="px-6 py-4 text-sm font-medium">Monthly Prem. Floor</td><td class="px-6 py-4 text-sm">$362.90+*</td><td class="px-6 py-4 text-sm">$202.90*</td></tr>
+                    <tr><td class="px-6 py-4 text-sm font-medium">Max Risk (Annual)</td><td class="px-6 py-4 text-sm">$283</td><td class="px-6 py-4 text-sm font-bold">$3,900</td></tr>
+                    <tr><td class="px-6 py-4 text-sm font-medium">Networks</td><td class="px-6 py-4 text-sm">None</td><td class="px-6 py-4 text-sm">HMO/PPO</td></tr>
+                    <tr><td class="px-6 py-4 text-sm font-medium">Extras</td><td class="px-6 py-4 text-sm">No</td><td class="px-6 py-4 text-sm text-green-600 font-bold">Yes</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="text-xs text-gray-400 mt-2">*Includes estimated $160 Medigap premium + $202.90 Part B base premium.</p>
+    </section>
+</main>
+
+<footer class="bg-gray-900 py-12 text-center text-gray-500">
+    <p>Powered by The Shead Group LLC and Gemini AI Analytics</p>
+</footer>
+
+<script>
+const apiKey = "";
+const GEN_AI_MODEL = "gemini-2.5-flash-preview-09-2025";
+
+async function callGemini(prompt, systemPrompt) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEN_AI_MODEL}:generateContent?key=${apiKey}`;
+    const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] }
+    };
+    let delay = 1000;
+    for (let i = 0; i < 5; i++) {
+        try {
+            const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (!response.ok) throw new Error('Error');
+            const data = await response.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.text || "No response.";
+        } catch (error) {
+            if (i === 4) return "Error contacting AI.";
+            await new Promise(res => setTimeout(res, delay));
+            delay *= 2;
+        }
+    }
+}
+
+async function getAdvisorRecommendation() {
+    const input = document.getElementById('advisorInput').value.trim();
+    if (!input) return;
+    const btn = document.getElementById('advisorBtn');
+    const resultDiv = document.getElementById('advisorResult');
+    btn.disabled = true;
+    btn.innerHTML = `<span class="loading-spinner"></span> Thinking...`;
+    resultDiv.classList.add('hidden');
+    const systemPrompt = "You are a Medicare Expert Advisor. Use 2026 data: Part B Premium $202.90, Part A Deductible $1,736. Recommend Medigap G, High-Ded G ($2,950), or AARP Advantage ($3,900 MOOP). Mention Hospital Indemnity benefits: $1000/day hospital, $500/day skilled care, $700 outpatient.";
+    const response = await callGemini(input, systemPrompt);
+    resultDiv.innerHTML = `<div class="prose prose-blue">${response.replace(/\n/g, '<br>')}</div>`;
+    resultDiv.classList.remove('hidden');
+    btn.disabled = false;
+    btn.innerHTML = `Get ✨ Recommendation`;
+}
+
+async function runScenario(text) {
+    document.getElementById('scenarioInput').value = text;
+    getScenarioResult();
+}
+
+async function getScenarioResult() {
+    const input = document.getElementById('scenarioInput').value.trim();
+    if (!input) return;
+    const btn = document.getElementById('scenarioBtn');
+    const resultDiv = document.getElementById('scenarioResult');
+    btn.disabled = true;
+    btn.innerHTML = `<span class="loading-spinner"></span> Analyzing...`;
+    resultDiv.classList.add('hidden');
+    const systemPrompt = "You are a Medicare Cost Analyst. Compare Plan G (Ded: $283), High-Ded G (Ded: $2,950), and AARP Advantage ($3,900 MOOP). Use 2026 costs. Mention Hospital Indemnity benefits: $1000/day hospital, $500/day skilled care, $700 outpatient surgery.";
+    const response = await callGemini(input, systemPrompt);
+    resultDiv.innerHTML = `<div class="prose prose-orange">${response.replace(/\n/g, '<br>')}</div>`;
+    resultDiv.classList.remove('hidden');
+    btn.disabled = false;
+    btn.innerHTML = `Analyze ✨ Scenario`;
+}
+
+const formatLabel = (l) => l.length <= 16 ? l : l.match(/.{1,16}(\s|$)/g).map(s => s.trim());
+const tooltipConfig = { callbacks: { title: (its) => { const l = its[0].chart.data.labels[its[0].dataIndex]; return Array.isArray(l) ? l.join(' ') : l; } } };
+
+window.onload = () => {
+    new Chart(document.getElementById('radarChart'), {
+        type: 'radar',
+        data: {
+            labels: ['Freedom', 'Predictability', 'Low Premium', 'Extras'].map(formatLabel),
+            datasets: [
+                { label: 'Medigap', data: [100, 95, 20, 10], borderColor: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.2)' },
+                { label: 'AARP Advantage', data: [40, 50, 90, 95], borderColor: '#F97316', backgroundColor: 'rgba(249, 115, 22, 0.2)' }
+            ]
+        },
+        options: { maintainAspectRatio: false, plugins: { tooltip: tooltipConfig, legend: { position: 'bottom' } } }
+    });
+
+    new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: {
+            labels: ['Plan G', 'High-Ded G', 'AARP Advantage'].map(formatLabel),
+            datasets: [
+                { label: 'Annual Premium Floor', data: [4355, 3035, 2435], backgroundColor: '#1E3A8A' },
+                { label: 'Max Med. Risk/MOOP', data: [283, 2950, 3900], backgroundColor: '#EF4444' }
+            ]
+        },
+        options: { maintainAspectRatio: false, plugins: { tooltip: tooltipConfig, legend: { position: 'top' } }, scales: { y: { ticks: { callback: (v) => '$' + v } } } }
+    });
+
+    new Chart(document.getElementById('donutChart'), {
+        type: 'doughnut',
+        data: { labels: ['Covered', 'Gap'], datasets: [{ data: [100, 0], backgroundColor: ['#14B8A6', '#E2E8F0'] }] },
+        options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
+    });
+};
+</script>
+</body>
+</html>
