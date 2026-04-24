@@ -131,7 +131,7 @@
         </div>
     </section>
 
-    <!-- Section 2: Coverage Profile (Brand Neutral Education) -->
+    <!-- Section 2: Coverage Profile -->
     <section id="core-choice" class="scroll-mt-24">
         <h2 class="text-3xl font-bold text-gray-900 mb-10">Medicare Partnership Paths</h2>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -172,7 +172,7 @@
         </div>
     </section>
 
-    <!-- Section 3: Personalized Advisor (Branded Recommendations) -->
+    <!-- Section 3: Personalized Advisor -->
     <section id="advisor" class="scroll-mt-24 no-print">
         <div class="card border-2 border-blue-100 bg-gradient-to-br from-blue-50/50 to-white shadow-lg">
             <div class="flex items-center gap-3 mb-6">
@@ -187,7 +187,7 @@
                     class="flex-1 p-4 rounded-2xl border border-gray-300 outline-none focus:ring-2 focus:ring-blue-600 shadow-inner bg-white"></textarea>
                 <button onclick="getAdvisorRecommendation()" id="advisorBtn"
                     class="bg-blue-900 hover:bg-black text-white font-bold py-4 px-10 rounded-2xl transition-all shadow-xl flex items-center justify-center gap-2">
-                    Analyze ✨ Needs
+                    Get ✨ Recommendation
                 </button>
             </div>
             <div id="advisorResult" class="hidden mt-8 p-8 bg-white rounded-2xl border border-blue-100 shadow-2xl text-gray-800 leading-relaxed text-sm"></div>
@@ -326,7 +326,7 @@
         </div>
     </section>
 
-    <!-- Section 9: Custom Scenario Explorer (At Bottom) -->
+    <!-- Section 9: Custom Scenario Explorer -->
     <section id="scenarios" class="scroll-mt-24 no-print">
         <div class="card border-2 border-orange-200 bg-orange-50/20 shadow-xl p-10 rounded-[3rem]">
             <div class="flex items-center gap-3 mb-8">
@@ -367,7 +367,7 @@
 </footer>
 
 <script>
-    // --- PERSISTENCE & DATA HANDLING ---
+    // --- STATE & PERSISTENCE ---
     let userDrugs = JSON.parse(localStorage.getItem('medicareDrugs')) || [];
 
     function saveAndRender() {
@@ -395,7 +395,8 @@
 
     function addDrug() {
         const name = document.getElementById('drugName').value.trim();
-        const cost = parseFloat(document.getElementById('drugCost').value);
+        const costStr = document.getElementById('drugCost').value;
+        const cost = parseFloat(costStr);
         if (!name || isNaN(cost)) return;
         userDrugs.push({ id: Date.now(), name, cost });
         document.getElementById('drugName').value = '';
@@ -411,10 +412,14 @@
     function renderDrugList() {
         const container = document.getElementById('drugListItems');
         const msg = document.getElementById('emptyListMsg');
-        const total = document.getElementById('totalMonthlyDrugCost');
+        const totalDisp = document.getElementById('totalMonthlyDrugCost');
         if (!container) return;
         container.innerHTML = '';
-        if (userDrugs.length === 0) { msg.classList.remove('hidden'); total.innerText = '$0.00'; return; }
+        if (userDrugs.length === 0) {
+            msg.classList.remove('hidden');
+            totalDisp.innerText = '$0.00';
+            return;
+        }
         msg.classList.add('hidden');
         let sum = 0;
         userDrugs.forEach(d => {
@@ -423,15 +428,15 @@
             div.className = 'flex justify-between items-center bg-teal-50 p-4 rounded-xl border border-teal-100 text-sm mb-2';
             div.innerHTML = `
                 <div><span class="font-bold text-teal-900">${d.name}</span><br><span class="text-xs text-teal-600">$${d.cost.toFixed(2)}/mo</span></div>
-                <button onclick="removeDrug(${d.id})" class="no-print text-red-400 hover:text-red-700 font-bold text-2xl px-2">&times;</button>
+                <button onclick="removeDrug(${d.id})" class="no-print text-red-400 hover:text-red-600 font-bold text-2xl px-2">&times;</button>
             `;
             container.appendChild(div);
         });
-        total.innerText = `$${sum.toFixed(2)}`;
+        totalDisp.innerText = `$${sum.toFixed(2)}`;
     }
 
     function clearAllData() {
-        if(confirm("Erase all data and drug lists?")) {
+        if(confirm("This will erase all session data and drug lists. Are you sure?")) {
             userDrugs = [];
             localStorage.removeItem('medicareDrugs');
             document.getElementById('advisorInput').value = '';
@@ -443,17 +448,45 @@
         }
     }
 
-    // --- AI INTEGRATION ---
-    const apiKey = ""; // USER MUST INSERT KEY
+    // --- GEMINI AI ANALYTICS ---
+    const apiKey = ""; // USER MUST INSERT KEY FOR PUBLIC USE
     const GEN_AI_MODEL = "gemini-2.5-flash-preview-09-2025";
 
     async function callGemini(prompt, systemPrompt) {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEN_AI_MODEL}:generateContent?key=${apiKey}`;
-        try {
-            const response = await fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], systemInstruction: { parts: [{ text: systemPrompt }] } }) });
-            const data = await response.json();
-            return data.candidates?.[0]?.content?.parts?.[0]?.text || "Analysis error.";
-        } catch (e) { return "AI Service currently unavailable."; }
+        const payload = {
+            contents: [{ parts: [{ text: prompt }] }],
+            systemInstruction: { parts: [{ text: systemPrompt }] }
+        };
+
+        let delay = 1000;
+        for (let i = 0; i < 5; i++) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    if (response.status === 403 || response.status === 400) {
+                        return "API Error: Please ensure a valid API Key is configured in the code for live use.";
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) return text;
+                
+                throw new Error("Invalid response format from AI service.");
+            } catch (error) {
+                if (i === 4) return `AI Analytics Error: ${error.message}. Please check your API configuration.`;
+                await new Promise(res => setTimeout(res, delay));
+                delay *= 2;
+            }
+        }
     }
 
     async function getAdvisorRecommendation() {
@@ -461,15 +494,15 @@
         if (!input) return;
         const btn = document.getElementById('advisorBtn');
         const resDiv = document.getElementById('advisorResult');
-        btn.disabled = true; btn.innerHTML = `<span class="loading-spinner"></span> Analyzing...`;
+        btn.disabled = true; btn.innerHTML = `<span class="loading-spinner"></span> Thinking...`;
         resDiv.classList.add('hidden');
         
         const sys = `You are a Medicare Expert Advisor. Use 2026 Costs (Part B $202.90).
-        STRICT BRANDS:
+        STRICT BRANDING:
         - Supplement: Recommend AARP (UHC) Plan G ($155 avg).
-        - HDG: Recommend United American High-Deductible Plan G ($50 avg).
+        - High-Ded: Recommend United American High-Deductible G ($50 avg).
         - Advantage: Recommend AARP (UHC) PPO or HMO options.
-        STRESS: Rate Stability using UA HDG + Indemnity vs the AARP 8% spikes. Mention nationwide freedom vs networks. Agent review required.`;
+        STRESS: Rate Stability using UA HDG + Indemnity vs the AARP 8% yearly spikes. Mention Agent consultation required.`;
         
         const text = await callGemini(input, sys);
         resDiv.innerHTML = `<div class="prose prose-blue max-w-none text-sm">${text.replace(/\n/g, '<br>')}</div>`;
@@ -493,68 +526,82 @@
         btn.disabled = false; btn.innerHTML = `Analyze ✨ Health Event`;
     }
 
-    // --- CHARTS ---
+    // --- CHARTS & VISUALS ---
     const fmt = (l) => l.length <= 16 ? l : l.match(/.{1,16}(\s|$)/g).map(s => s.trim());
 
     window.addEventListener('load', () => {
         renderDrugList();
         
-        new Chart(document.getElementById('radarChart'), {
-            type: 'radar',
-            data: {
-                labels: ['Freedom', 'Predictability', 'Low Premium', 'Extras'].map(fmt),
-                datasets: [
-                    { label: 'Supplement Path', data: [100, 95, 20, 10], borderColor: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 3 },
-                    { label: 'Advantage Path', data: [40, 50, 90, 95], borderColor: '#F97316', backgroundColor: 'rgba(249, 115, 22, 0.1)', borderWidth: 3 }
-                ]
-            },
-            options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-        });
-
-        new Chart(document.getElementById('barChart'), {
-            type: 'bar',
-            data: {
-                labels: ['AARP Standard G', 'United Amer. HDG', 'AARP Advantage'].map(fmt),
-                datasets: [
-                    { label: 'Annual Premium Floor', data: [4295, 3035, 2435], backgroundColor: '#1E3A8A', borderRadius: 8 },
-                    { label: 'Max Potential Med. Risk', data: [283, 2950, 3900], backgroundColor: '#EF4444', borderRadius: 8 }
-                ]
-            },
-            options: { 
-                maintainAspectRatio: false, 
-                scales: { y: { ticks: { callback: v => '$' + v.toLocaleString() } } },
-                plugins: { legend: { position: 'top' } }
-            }
-        });
-
-        const labels = Array.from({length: 15}, (_, i) => 2026 + i);
-        let b = 202.90, d = 40, g = 155, h = 50;
-        const sData = [], hData = [];
-        let sSum = 0, hSum = 0;
-        for (let i = 0; i < 15; i++) {
-            const annS = (b + d + g) * 12; const annH = (b + d + h) * 12;
-            sData.push(annS.toFixed(0)); hData.push(annH.toFixed(0));
-            sSum += annS; hSum += annH;
-            b *= 1.053; d *= 1.025; g *= 1.08; h *= 1.02;
+        const rEl = document.getElementById('radarChart');
+        if (rEl) {
+            new Chart(rEl, {
+                type: 'radar',
+                data: {
+                    labels: ['Freedom', 'Predictability', 'Low Premium', 'Extras'].map(fmt),
+                    datasets: [
+                        { label: 'Supplement Path', data: [100, 95, 20, 10], borderColor: '#3B82F6', backgroundColor: 'rgba(59, 130, 246, 0.1)', borderWidth: 3 },
+                        { label: 'Advantage Path', data: [40, 50, 90, 95], borderColor: '#F97316', backgroundColor: 'rgba(249, 115, 22, 0.1)', borderWidth: 3 }
+                    ]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+            });
         }
-        document.getElementById('cumulativeStandard').innerText = '$' + Math.round(sSum).toLocaleString();
-        document.getElementById('cumulativeHDG').innerText = '$' + Math.round(hSum).toLocaleString();
 
-        new Chart(document.getElementById('projectionChart'), {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    { label: 'AARP Standard Strategy (8% Incr)', data: sData, borderColor: '#EF4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.3 },
-                    { label: 'United American HDG Strategy (2% Incr)', data: hData, borderColor: '#14B8A6', backgroundColor: 'rgba(20, 184, 166, 0.1)', fill: true, tension: 0.3 }
-                ]
-            },
-            options: { 
-                maintainAspectRatio: false,
-                plugins: { legend: { position: 'top' } },
-                scales: { y: { ticks: { callback: v => '$' + v.toLocaleString() } } }
+        const bEl = document.getElementById('barChart');
+        if (bEl) {
+            new Chart(bEl, {
+                type: 'bar',
+                data: {
+                    labels: ['AARP Standard G', 'United Amer. HDG', 'AARP Advantage'].map(fmt),
+                    datasets: [
+                        { label: 'Annual Premium Floor', data: [4295, 3035, 2435], backgroundColor: '#1E3A8A', borderRadius: 8 },
+                        { label: 'Max Potential Med. Risk', data: [283, 2950, 3900], backgroundColor: '#EF4444', borderRadius: 8 }
+                    ]
+                },
+                options: { 
+                    maintainAspectRatio: false, 
+                    scales: { y: { ticks: { callback: v => '$' + v.toLocaleString() } } },
+                    plugins: { legend: { position: 'top' } }
+                }
+            });
+        }
+
+        const pEl = document.getElementById('projectionChart');
+        if (pEl) {
+            const labels = Array.from({length: 15}, (_, i) => 2026 + i);
+            let b = 202.90, d = 40, g = 155, h = 50;
+            const sData = [], hData = [];
+            let sSum = 0, hSum = 0;
+
+            for (let i = 0; i < 15; i++) {
+                const annS = (b + d + g) * 12;
+                const annH = (b + d + h) * 12;
+                sData.push(annS.toFixed(0)); hData.push(annH.toFixed(0));
+                sSum += annS; hSum += annH;
+                b *= 1.053; d *= 1.025; g *= 1.08; h *= 1.02;
             }
-        });
+
+            const cS = document.getElementById('cumulativeStandard');
+            const cH = document.getElementById('cumulativeHDG');
+            if (cS) cS.innerText = '$' + Math.round(sSum).toLocaleString();
+            if (cH) cH.innerText = '$' + Math.round(hSum).toLocaleString();
+
+            new Chart(pEl, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'AARP Standard Strategy (8% Incr)', data: sData, borderColor: '#EF4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', fill: true, tension: 0.3 },
+                        { label: 'United American HDG Strategy (2% Incr)', data: hData, borderColor: '#14B8A6', backgroundColor: 'rgba(20, 184, 166, 0.1)', fill: true, tension: 0.3 }
+                    ]
+                },
+                options: { 
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { ticks: { callback: v => '$' + v.toLocaleString() } } }
+                }
+            });
+        }
     });
 </script>
 </body>
